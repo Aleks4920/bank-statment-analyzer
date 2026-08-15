@@ -156,35 +156,31 @@ if skipped_dates:
 # create a graph represnting the trends seen with a line showing the balance over time, and a bar graph showing the total withdrawals and deposits over time, we will use matplotlib to create the graphs
 import matplotlib.pyplot as plt
 
-# Prepare data for the line graph (balance over time)
-dates = list(day_stats.keys())
+# Prepare data for a combined chart
+dates = sorted(day_stats.keys())
 balances = [day_stats[date]['deposit_total'] - day_stats[date]['withdrawal_total'] for date in dates]
-
-# Prepare data for the bar graph (total withdrawals and deposits)
 withdrawals = [day_stats[date]['withdrawal_total'] for date in dates]
 deposits = [day_stats[date]['deposit_total'] for date in dates]
 
-# Create the line graph
-plt.figure(figsize=(10, 5))
-plt.plot(dates, balances, marker='o', linestyle='-', color='blue')
-plt.title('Balance Over Time')
-plt.xlabel('Date')
-plt.ylabel('Balance')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+x = list(range(len(dates)))
+width = 0.8
 
-# Create the bar graph
-x = range(len(dates))
-width = 0.35
+# Layer bars and line on a shared timeline
+fig, ax1 = plt.subplots(figsize=(12, 6))
+bars_withdrawals = ax1.bar([i - width / 2 for i in x], withdrawals, width, label='Withdrawals', color='red', alpha=0.7)
+bars_deposits = ax1.bar([i + width / 2 for i in x], deposits, width, label='Deposits', color='green', alpha=0.7)
+ax1.set_xlabel('Date')
+ax1.set_ylabel('Withdrawal/Deposit Totals ($)')
+ax1.set_xticks(x)
+ax1.set_xticklabels(dates, rotation=45, ha='right')
 
-plt.figure(figsize=(10, 5))
-plt.bar([i - width/2 for i in x], withdrawals, width, label='Withdrawals', color='red')
-plt.bar([i + width/2 for i in x], deposits, width, label='Deposits', color='green')
-plt.title('Total Withdrawals and Deposits Over Time')
-plt.xlabel('Date')
-plt.ylabel('Amount')
-plt.xticks(x, dates, rotation=45)
-plt.legend()
+ax2 = ax1.twinx()
+line_balance, = ax2.plot(x, balances, marker='o', linestyle='-', color='blue', linewidth=2, label='Net Balance Trend')
+ax2.set_ylabel('Net Balance Trend ($)')
+
+plt.title('Withdrawals, Deposits, and Net Balance Trend Over Time')
+handles = [bars_withdrawals, bars_deposits, line_balance]
+labels = [h.get_label() for h in handles]
+ax1.legend(handles, labels, loc='upper left')
 plt.tight_layout()
 plt.show()
